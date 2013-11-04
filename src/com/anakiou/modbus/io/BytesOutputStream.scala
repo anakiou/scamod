@@ -5,13 +5,13 @@ import java.io.DataOutputStream
 
 class BytesOutputStream(size: Int) extends FastByteArrayOutputStream(size) with DataOutput {
 
-  private var m_Dout: DataOutputStream = new DataOutputStream(this)
+  private var dout: DataOutputStream = new DataOutputStream(this)
 
   def this(buffer: Array[Byte]) {
     this(buffer.length)
     buf = buffer
     count = 0
-    m_Dout = new DataOutputStream(this)
+    dout = new DataOutputStream(this)
   }
 
   override def getBuffer(): Array[Byte] = buf
@@ -21,35 +21,35 @@ class BytesOutputStream(size: Int) extends FastByteArrayOutputStream(size) with 
   }
 
   def writeBoolean(v: Boolean) {
-    m_Dout.writeBoolean(v)
+    dout.writeBoolean(v)
   }
 
   def writeByte(v: Int) {
-    m_Dout.writeByte(v)
+    dout.writeByte(v)
   }
 
   def writeShort(v: Int) {
-    m_Dout.writeShort(v)
+    dout.writeShort(v)
   }
 
   def writeChar(v: Int) {
-    m_Dout.writeChar(v)
+    dout.writeChar(v)
   }
 
   def writeInt(v: Int) {
-    m_Dout.writeInt(v)
+    dout.writeInt(v)
   }
 
   def writeLong(v: Long) {
-    m_Dout.writeLong(v)
+    dout.writeLong(v)
   }
 
   def writeFloat(v: Float) {
-    m_Dout.writeFloat(v)
+    dout.writeFloat(v)
   }
 
   def writeDouble(v: Double) {
-    m_Dout.writeDouble(v)
+    dout.writeDouble(v)
   }
 
   def writeBytes(s: String) {
@@ -60,10 +60,10 @@ class BytesOutputStream(size: Int) extends FastByteArrayOutputStream(size) with 
   }
 
   def writeChars(s: String) {
-    m_Dout.writeChars(s)
+    dout.writeChars(s)
   }
 
   def writeUTF(str: String) {
-    m_Dout.writeUTF(str)
+    dout.writeUTF(str)
   }
 }

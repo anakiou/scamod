@@ -6,13 +6,13 @@ import java.io.IOException
 
 class BytesInputStream(size: Int) extends FastByteArrayInputStream(Array.ofDim[Byte](size)) with DataInput {
 
-  var m_Din: DataInputStream = new DataInputStream(this)
-  var m_Data: Array[Byte] = new Array[Byte](size)
+  var din: DataInputStream = new DataInputStream(this)
+  var datam: Array[Byte] = new Array[Byte](size)
 
   def this(data: Array[Byte]) {
     this(data.length)
-    m_Data = data
-    m_Din = new DataInputStream(this)
+    datam = data
+    din = new DataInputStream(this)
   }
 
   def reset(data: Array[Byte]) {
@@ -46,36 +46,36 @@ class BytesInputStream(size: Int) extends FastByteArrayInputStream(Array.ofDim[B
   def getBufferLength(): Int = buf.length
 
   def readFully(b: Array[Byte]) {
-    m_Din.readFully(b)
+    din.readFully(b)
   }
 
   def readFully(b: Array[Byte], off: Int, len: Int) {
-    m_Din.readFully(b, off, len)
+    din.readFully(b, off, len)
   }
 
-  def skipBytes(n: Int): Int = m_Din.skipBytes(n)
+  def skipBytes(n: Int): Int = din.skipBytes(n)
 
-  def readBoolean(): Boolean = m_Din.readBoolean()
+  def readBoolean(): Boolean = din.readBoolean()
 
-  def readByte(): Byte = m_Din.readByte()
+  def readByte(): Byte = din.readByte()
 
-  def readUnsignedByte(): Int = m_Din.readUnsignedByte()
+  def readUnsignedByte(): Int = din.readUnsignedByte()
 
-  def readShort(): Short = m_Din.readShort()
+  def readShort(): Short = din.readShort()
 
-  def readUnsignedShort(): Int = m_Din.readUnsignedShort()
+  def readUnsignedShort(): Int = din.readUnsignedShort()
 
-  def readChar(): Char = m_Din.readChar()
+  def readChar(): Char = din.readChar()
 
-  def readInt(): Int = m_Din.readInt()
+  def readInt(): Int = din.readInt()
 
-  def readLong(): Long = m_Din.readLong()
+  def readLong(): Long = din.readLong()
 
-  def readFloat(): Float = m_Din.readFloat()
+  def readFloat(): Float = din.readFloat()
 
-  def readDouble(): Double = m_Din.readDouble()
+  def readDouble(): Double = din.readDouble()
 
   def readLine(): String = throw new IOException("Not supported.")
 
-  def readUTF(): String = m_Din.readUTF()
+  def readUTF(): String = din.readUTF()
 }

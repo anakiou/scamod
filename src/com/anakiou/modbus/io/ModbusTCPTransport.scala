@@ -18,11 +18,11 @@ import com.anakiou.modbus.util.ModbusUtil
 
 class ModbusTCPTransport(socket: Socket) extends ModbusTransport {
 
-  private var m_Input: DataInputStream = _
+  private var input: DataInputStream = _
 
-  private var m_Output: DataOutputStream = _
+  private var output: DataOutputStream = _
 
-  private var m_ByteIn: BytesInputStream = _
+  private var byteIn: BytesInputStream = _
 
   try {
     setSocket(socket)
@@ -38,33 +38,33 @@ class ModbusTCPTransport(socket: Socket) extends ModbusTransport {
   }
 
   def close() {
-    m_Input.close()
-    m_Output.close()
+    input.close()
+    output.close()
   }
 
   def writeMessage(msg: ModbusMessage) {
-    msg.writeTo(m_Output.asInstanceOf[DataOutput])
-    m_Output.flush()
+    msg.writeTo(output.asInstanceOf[DataOutput])
+    output.flush()
   }
 
   def readRequest(): ModbusRequest = {
     try {
       var req: ModbusRequest = null
       synchronized {
-        val buffer = m_ByteIn.getBuffer
-        if (m_Input.read(buffer, 0, 6) == -1) {
+        val buffer = byteIn.getBuffer
+        if (input.read(buffer, 0, 6) == -1) {
           throw new EOFException("Premature end of stream (Header truncated).")
         }
         val bf = ModbusUtil.registerToShort(buffer, 4)
-        if (m_Input.read(buffer, 6, bf) == -1) {
+        if (input.read(buffer, 6, bf) == -1) {
           throw new ModbusIOException("Premature end of stream (Message truncated).")
         }
-        m_ByteIn.reset(buffer, (6 + bf))
-        m_ByteIn.skip(7)
-        val functionCode = m_ByteIn.readUnsignedByte()
-        m_ByteIn.reset()
+        byteIn.reset(buffer, (6 + bf))
+        byteIn.skip(7)
+        val functionCode = byteIn.readUnsignedByte()
+        byteIn.reset()
         req = ModbusRequest.createModbusRequest(functionCode)
-        req.readFrom(m_ByteIn)
+        req.readFrom(byteIn)
       }
       req
     } catch {
@@ -81,20 +81,20 @@ class ModbusTCPTransport(socket: Socket) extends ModbusTransport {
     try {
       var res: ModbusResponse = null
       synchronized {
-        val buffer = m_ByteIn.getBuffer
-        if (m_Input.read(buffer, 0, 6) == -1) {
+        val buffer = byteIn.getBuffer
+        if (input.read(buffer, 0, 6) == -1) {
           throw new ModbusIOException("Premature end of stream (Header truncated).")
         }
         val bf = ModbusUtil.registerToShort(buffer, 4)
-        if (m_Input.read(buffer, 6, bf) == -1) {
+        if (input.read(buffer, 6, bf) == -1) {
           throw new ModbusIOException("Premature end of stream (Message truncated).")
         }
-        m_ByteIn.reset(buffer, (6 + bf))
-        m_ByteIn.skip(7)
-        val functionCode = m_ByteIn.readUnsignedByte()
-        m_ByteIn.reset()
+        byteIn.reset(buffer, (6 + bf))
+        byteIn.skip(7)
+        val functionCode = byteIn.readUnsignedByte()
+        byteIn.reset()
         res = ModbusResponse.createModbusResponse(functionCode)
-        res.readFrom(m_ByteIn)
+        res.readFrom(byteIn)
       }
       res
     } catch {
@@ -106,8 +106,8 @@ class ModbusTCPTransport(socket: Socket) extends ModbusTransport {
   }
 
   private def prepareStreams(socket: Socket) {
-    m_Input = new DataInputStream(new BufferedInputStream(socket.getInputStream))
-    m_Output = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream))
-    m_ByteIn = new BytesInputStream(Modbus.MAX_IP_MESSAGE_LENGTH)
+    input = new DataInputStream(new BufferedInputStream(socket.getInputStream))
+    output = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream))
+    byteIn = new BytesInputStream(Modbus.MAX_IP_MESSAGE_LENGTH)
   }
 }

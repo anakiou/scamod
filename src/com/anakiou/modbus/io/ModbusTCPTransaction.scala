@@ -14,26 +14,26 @@ import ModbusTCPTransaction._
 
 object ModbusTCPTransaction {
 
-  private var c_TransactionID: AtomicCounter = new AtomicCounter(Modbus.DEFAULT_TRANSACTION_ID)
+  private var transactionID: AtomicCounter = new AtomicCounter(Modbus.DEFAULT_TRANSACTION_ID)
 }
 
 class ModbusTCPTransaction extends ModbusTransaction {
 
-  private var m_Connection: TCPMasterConnection = _
+  private var connection: TCPMasterConnection = _
 
-  private var m_IO: ModbusTransport = _
+  private var io: ModbusTransport = _
 
-  private var m_Request: ModbusRequest = _
+  private var request: ModbusRequest = _
 
-  private var m_Response: ModbusResponse = _
+  private var response: ModbusResponse = _
 
-  private var m_ValidityCheck: Boolean = Modbus.DEFAULT_VALIDITYCHECK
+  private var validityCheck: Boolean = Modbus.DEFAULT_VALIDITYCHECK
 
-  private var m_Reconnecting: Boolean = Modbus.DEFAULT_RECONNECTING
+  private var reconnecting: Boolean = Modbus.DEFAULT_RECONNECTING
 
-  private var m_Retries: Int = Modbus.DEFAULT_RETRIES
+  private var retries: Int = Modbus.DEFAULT_RETRIES
 
-  private var m_TransactionLock: Mutex = new Mutex()
+  private var transactionLock: Mutex = new Mutex()
 
   def this(request: ModbusRequest) {
     this()
@@ -46,67 +46,67 @@ class ModbusTCPTransaction extends ModbusTransaction {
   }
 
   def setConnection(con: TCPMasterConnection) {
-    m_Connection = con
-    m_IO = con.getModbusTransport
+    connection = con
+    io = con.getModbusTransport
   }
 
   def setRequest(req: ModbusRequest) {
-    m_Request = req
+    request = req
   }
 
-  def getRequest(): ModbusRequest = m_Request
+  def getRequest(): ModbusRequest = request
 
-  def getResponse(): ModbusResponse = m_Response
+  def getResponse(): ModbusResponse = response
 
-  def getTransactionID(): Int = c_TransactionID.get
+  def getTransactionID(): Int = transactionID.get
 
   def setCheckingValidity(b: Boolean) {
-    m_ValidityCheck = b
+    validityCheck = b
   }
 
-  def isCheckingValidity(): Boolean = m_ValidityCheck
+  def isCheckingValidity(): Boolean = validityCheck
 
   def setReconnecting(b: Boolean) {
-    m_Reconnecting = b
+    reconnecting = b
   }
 
-  def isReconnecting(): Boolean = m_Reconnecting
+  def isReconnecting(): Boolean = reconnecting
 
-  def getRetries(): Int = m_Retries
+  def getRetries(): Int = retries
 
   def setRetries(num: Int) {
-    m_Retries = num
+    retries = num
   }
 
   def execute() {
     assertExecutable()
     try {
-      m_TransactionLock.acquire()
-      if (!m_Connection.isConnected) {
-        m_Connection.connect()
-        m_IO = m_Connection.getModbusTransport
+      transactionLock.acquire()
+      if (!connection.isConnected) {
+        connection.connect()
+        io = connection.getModbusTransport
       }
       var retryCounter = 0
-      while (retryCounter < m_Retries) {
+      while (retryCounter < retries) {
         try {
-          m_Request.setTransactionID(c_TransactionID.increment())
-          m_IO.writeMessage(m_Request)
-          m_Response = m_IO.readResponse()
+          request.setTransactionID(transactionID.increment())
+          io.writeMessage(request)
+          response = io.readResponse()
           //break
         } catch {
-          case ex: ModbusIOException => if (retryCounter == m_Retries) {
-            throw new ModbusIOException("Executing transaction failed (tried " + m_Retries + " times)")
+          case ex: ModbusIOException => if (retryCounter == retries) {
+            throw new ModbusIOException("Executing transaction failed (tried " + retries + " times)")
           } else {
             retryCounter += 1
             //continue
           }
         }
       }
-      if (m_Response.isInstanceOf[ExceptionResponse]) {
-        throw new ModbusSlaveException(m_Response.asInstanceOf[ExceptionResponse].getExceptionCode)
+      if (response.isInstanceOf[ExceptionResponse]) {
+        throw new ModbusSlaveException(response.asInstanceOf[ExceptionResponse].getExceptionCode)
       }
       if (isReconnecting) {
-        m_Connection.close()
+        connection.close()
       }
       if (isCheckingValidity) {
         checkValidity()
@@ -114,12 +114,12 @@ class ModbusTCPTransaction extends ModbusTransaction {
     } catch {
       case ex: InterruptedException => throw new ModbusIOException("Thread acquiring lock was interrupted.")
     } finally {
-      m_TransactionLock.release()
+      transactionLock.release()
     }
   }
 
   private def assertExecutable() {
-    if (m_Request == null || m_Connection == null) {
+    if (request == null || connection == null) {
       throw new ModbusException("Assertion failed, transaction not executable")
     }
   }
